@@ -1,0 +1,49 @@
+Function NomeCompletoWindows() As String
+    Dim objWMIService As Object
+    Dim colItems As Object
+    Dim objItem As Object
+    Dim nomeCompleto As String
+    Dim nomeUsuario As String
+
+    nomeUsuario = UsuarioWindows()
+    
+    On Error Resume Next
+    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+    On Error GoTo 0
+
+    If objWMIService Is Nothing Then
+        NomeCompletoWindows = nomeUsuario
+        Exit Function
+    End If
+
+    Set colItems = objWMIService.ExecQuery( _
+        "SELECT FullName FROM Win32_UserAccount WHERE Name = '" & nomeUsuario & "'")
+
+    If colItems Is Nothing Then
+        NomeCompletoWindows = nomeUsuario
+        Exit Function
+    End If
+
+    For Each objItem In colItems
+        nomeCompleto = objItem.FullName
+        Exit For
+    Next
+
+    If nomeCompleto = "" Then
+        nomeCompleto = nomeUsuario
+    End If
+
+    NomeCompletoWindows = nomeCompleto
+End Function
+
+
+' Função para obter o nome de login do Windows
+Function UsuarioWindows() As String
+    Dim buffer As String
+    Dim comprimento As Long
+    buffer = String$(255, vbNullChar)
+    comprimento = 255
+    GetUserName buffer, comprimento
+    UsuarioWindows = Left$(buffer, InStr(buffer, vbNullChar) - 1)
+End Function
+
